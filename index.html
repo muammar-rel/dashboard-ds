@@ -3,8 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgriSmart - Platform Analisis Pertanian</title>
+    <title>Dashboard Petani</title>
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { primary: "#4CAF50", secondary: "#8BC34A" },
+            borderRadius: {
+              none: "0px",
+              sm: "4px",
+              DEFAULT: "8px",
+              md: "12px",
+              lg: "16px",
+              xl: "20px",
+              "2xl": "24px",
+              "3xl": "32px",
+              full: "9999px",
+              button: "8px",
+            },
+          },
+        },
+      };
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,714 +41,1199 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="scripts.js"></script>
+    <style>
+      :where([class^="ri-"])::before {
+        content: "\f3c2";
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f8f9fa;
+      }
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .custom-checkbox {
+        position: relative;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        border: 2px solid #4caf50;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .custom-checkbox.checked::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 6px;
+        width: 6px;
+        height: 12px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+      .custom-checkbox.checked {
+        background-color: #4caf50;
+      }
+      .custom-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .custom-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e8f0;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+      .switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .switch-slider {
+        background-color: #4caf50;
+      }
+      input:checked + .switch-slider:before {
+        transform: translateX(20px);
+      }
+      .custom-range {
+        width: 100%;
+        height: 6px;
+        border-radius: 5px;
+        background: #e2e8f0;
+        outline: none;
+      }
+      .custom-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #4caf50;
+        cursor: pointer;
+      }
+      .custom-range::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #4caf50;
+        cursor: pointer;
+        border: none;
+      }
+      .weather-card {
+        background: linear-gradient(135deg, #4caf50, #8bc34a);
+        color: white;
+      }
+      .notification-dot {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 8px;
+        height: 8px;
+        background-color: #ef4444;
+        border-radius: 50%;
+      }
+    </style>
   </head>
   <body>
-    <!-- Header & Navigation -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-      <div
-        class="container mx-auto px-4 py-3 flex items-center justify-between"
-      >
-        <div class="flex items-center">
-          <a href="#" class="text-2xl font-['Pacifico'] text-primary mr-8"
-            >AgriSmart</a
-          >
-          <nav class="hidden md:flex items-center space-x-6">
-            <a
-              href="#"
-              class="text-primary font-medium border-b-2 border-primary py-1"
-              >Dashboard</a
-            >
-            <a href="#" class="text-gray-600 hover:text-primary py-1"
-              >Data Analisis</a
-            >
-            <a href="#" class="text-gray-600 hover:text-primary py-1"
-              >Prediksi</a
-            >
-            <a href="#" class="text-gray-600 hover:text-primary py-1"
-              >Rekomendasi</a
-            >
-            <div class="relative ml-6">
-              <select
-                id="cropSelector"
-                class="bg-gray-100 border-none text-gray-700 text-sm rounded pr-8 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                <option value="padi">Padi</option>
-                <option value="jagung">Jagung</option>
-                <option value="kedelai">Kedelai</option>
-                <option value="cabai">Cabai</option>
-                <option value="bawang">Bawang</option>
-                <option value="kentang">Kentang</option>
-                <option value="tomat">Tomat</option>
-              </select>
-              <div
-                class="absolute right-2 top-2.5 w-5 h-5 flex items-center justify-center text-gray-500 pointer-events-none"
-              >
-                <i class="ri-arrow-down-s-line"></i>
-              </div>
-            </div>
-          </nav>
-        </div>
-        <div class="flex items-center space-x-4">
-          <div class="relative">
-            <input
-              type="search"
-              placeholder="Cari..."
-              class="pl-10 pr-4 py-2 w-64 rounded bg-gray-100 border-none focus:ring-2 focus:ring-primary/30 focus:outline-none text-sm"
-            />
-            <div
-              class="absolute left-3 top-2.5 w-5 h-5 flex items-center justify-center text-gray-500"
-            >
-              <i class="ri-search-line"></i>
-            </div>
-          </div>
-          <div
-            class="w-10 h-10 flex items-center justify-center relative cursor-pointer"
-          >
-            <i class="ri-notification-3-line text-gray-600"></i>
-            <span
-              class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
-            ></span>
-          </div>
-          <div class="flex items-center space-x-2 cursor-pointer">
-            <div class="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-              <img
-                src="https://readdy.ai/api/search-image?query=professional%20headshot%20of%20Indonesian%20male%20farmer%20with%20friendly%20smile%2C%2040%20years%20old%2C%20natural%20lighting%2C%20neutral%20background%2C%20high%20quality%20portrait&width=100&height=100&seq=1&orientation=squarish"
-                alt="Profile"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <span class="text-sm font-medium text-gray-700 hidden md:inline"
-              >Budi Santoso</span
-            >
-          </div>
-        </div>
-      </div>
-    </header>
-    <main class="container mx-auto px-4 py-6">
-      <!-- Top Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded shadow p-5 flex items-center">
-          <div
-            class="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-500 mr-4"
-          >
-            <i class="ri-sun-line ri-lg"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">Cuaca Hari Ini</p>
-            <div class="flex items-center">
-              <span class="text-xl font-semibold">29°C</span>
-              <span class="ml-2 text-sm text-gray-600">Cerah Berawan</span>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white rounded shadow p-5 flex items-center">
-          <div
-            class="w-12 h-12 flex items-center justify-center rounded-full bg-green-100 text-green-500 mr-4"
-          >
-            <i class="ri-drop-line ri-lg"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">Kelembaban Tanah</p>
-            <div class="flex items-center">
-              <span class="text-xl font-semibold">68%</span>
-              <span class="ml-2 text-sm text-green-600">Optimal</span>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white rounded shadow p-5 flex items-center">
-          <div
-            class="w-12 h-12 flex items-center justify-center rounded-full bg-amber-100 text-amber-500 mr-4"
-          >
-            <i class="ri-plant-line ri-lg"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">Prediksi Panen</p>
-            <div class="flex items-center">
-              <span class="text-xl font-semibold">4.8 ton/ha</span>
-              <span class="ml-2 text-sm text-amber-600">+5%</span>
-            </div>
-          </div>
-        </div>
-        <div class="bg-white rounded shadow p-5 flex items-center">
-          <div
-            class="w-12 h-12 flex items-center justify-center rounded-full bg-red-100 text-red-500 mr-4"
-          >
-            <i class="ri-money-dollar-circle-line ri-lg"></i>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500">Harga Beras</p>
-            <div class="flex items-center">
-              <span class="text-xl font-semibold">Rp 12.500/kg</span>
-              <span class="ml-2 text-sm text-red-600">-2%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Main Content -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column -->
-        <div class="lg:col-span-2 space-y-6">
-          <!-- Chart Section -->
-          <div class="bg-white rounded shadow p-5">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-lg font-semibold">Tren Produktivitas Lahan</h2>
-              <div class="flex space-x-2">
-                <button
-                  id="weeklyBtn"
-                  class="px-3 py-1.5 text-sm bg-primary text-white !rounded-button"
-                >
-                  Mingguan
-                </button>
-                <button
-                  id="monthlyBtn"
-                  class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 !rounded-button whitespace-nowrap"
-                >
-                  Bulanan
-                </button>
-                <button
-                  id="yearlyBtn"
-                  class="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 !rounded-button whitespace-nowrap"
-                >
-                  Tahunan
-                </button>
-              </div>
-            </div>
-            <div id="productivityChart" class="w-full h-64"></div>
-          </div>
-          <!-- Map Section -->
-          <div class="bg-white rounded shadow p-5">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-lg font-semibold">Peta Lahan & Kondisi Cuaca</h2>
-              <div class="flex items-center space-x-3">
-                <div class="flex items-center space-x-1">
-                  <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span class="text-xs text-gray-600">Optimal</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                  <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <span class="text-xs text-gray-600">Perhatian</span>
-                </div>
-                <div class="flex items-center space-x-1">
-                  <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span class="text-xs text-gray-600">Kritis</span>
-                </div>
-              </div>
-            </div>
-            <div
-              class="w-full h-80 rounded overflow-hidden bg-cover bg-center"
-              style="
-                background-image: url('https://public.readdy.ai/gen_page/map_placeholder_1280x720.png');
-              "
-            ></div>
-          </div>
-          <!-- Price Analysis -->
-          <div class="bg-white rounded shadow p-5">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-lg font-semibold">Analisis Harga Komoditas</h2>
-              <select
-                class="bg-gray-100 border-none text-gray-700 text-sm rounded pr-8 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                <option>Beras</option>
-                <option>Jagung</option>
-                <option>Kedelai</option>
-                <option>Cabai</option>
-              </select>
-            </div>
-            <div id="priceChart" class="w-full h-64"></div>
-          </div>
-        </div>
-        <!-- Right Column -->
-        <div class="space-y-6">
-          <!-- Weather Forecast -->
-          <div class="bg-white rounded shadow p-5">
-            <h2 class="text-lg font-semibold mb-4">Prakiraan Cuaca 5 Hari</h2>
-            <div class="space-y-4">
-              <div
-                class="flex justify-between items-center p-3 bg-blue-50 rounded"
-              >
-                <div>
-                  <p class="font-medium">Jumat, 9 Mei</p>
-                  <p class="text-sm text-gray-600">Hari ini</p>
-                </div>
-                <div class="flex items-center">
-                  <div class="w-8 h-8 flex items-center justify-center mr-2">
-                    <i class="ri-sun-line text-yellow-500 ri-lg"></i>
-                  </div>
-                  <span class="text-lg font-medium">29°C</span>
-                </div>
-              </div>
-              <div
-                class="flex justify-between items-center p-3 hover:bg-gray-50 rounded"
-              >
-                <div>
-                  <p class="font-medium">Sabtu, 10 Mei</p>
-                  <p class="text-sm text-gray-600">Besok</p>
-                </div>
-                <div class="flex items-center">
-                  <div class="w-8 h-8 flex items-center justify-center mr-2">
-                    <i class="ri-cloudy-line text-gray-500 ri-lg"></i>
-                  </div>
-                  <span class="text-lg font-medium">27°C</span>
-                </div>
-              </div>
-              <div
-                class="flex justify-between items-center p-3 hover:bg-gray-50 rounded"
-              >
-                <div>
-                  <p class="font-medium">Minggu, 11 Mei</p>
-                  <p class="text-sm text-gray-600"></p>
-                </div>
-                <div class="flex items-center">
-                  <div class="w-8 h-8 flex items-center justify-center mr-2">
-                    <i class="ri-showers-line text-blue-500 ri-lg"></i>
-                  </div>
-                  <span class="text-lg font-medium">26°C</span>
-                </div>
-              </div>
-              <div
-                class="flex justify-between items-center p-3 hover:bg-gray-50 rounded"
-              >
-                <div>
-                  <p class="font-medium">Senin, 12 Mei</p>
-                  <p class="text-sm text-gray-600"></p>
-                </div>
-                <div class="flex items-center">
-                  <div class="w-8 h-8 flex items-center justify-center mr-2">
-                    <i class="ri-drizzle-line text-blue-500 ri-lg"></i>
-                  </div>
-                  <span class="text-lg font-medium">25°C</span>
-                </div>
-              </div>
-              <div
-                class="flex justify-between items-center p-3 hover:bg-gray-50 rounded"
-              >
-                <div>
-                  <p class="font-medium">Selasa, 13 Mei</p>
-                  <p class="text-sm text-gray-600"></p>
-                </div>
-                <div class="flex items-center">
-                  <div class="w-8 h-8 flex items-center justify-center mr-2">
-                    <i class="ri-sun-cloudy-line text-yellow-500 ri-lg"></i>
-                  </div>
-                  <span class="text-lg font-medium">28°C</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Alerts & Notifications -->
-          <div class="bg-white rounded shadow p-5">
-            <h2 class="text-lg font-semibold mb-4">Peringatan & Notifikasi</h2>
-            <div class="space-y-3">
-              <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded">
-                <div class="flex items-start">
-                  <div
-                    class="w-5 h-5 flex items-center justify-center text-red-500 mt-0.5 mr-2"
-                  >
-                    <i class="ri-error-warning-line"></i>
-                  </div>
-                  <div>
-                    <p class="font-medium text-red-700">Risiko Kekeringan</p>
-                    <p class="text-sm text-gray-600">
-                      Prediksi curah hujan rendah dalam 2 minggu ke depan.
-                      Pertimbangkan untuk menyiapkan irigasi tambahan.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded"
-              >
-                <div class="flex items-start">
-                  <div
-                    class="w-5 h-5 flex items-center justify-center text-yellow-500 mt-0.5 mr-2"
-                  >
-                    <i class="ri-alert-line"></i>
-                  </div>
-                  <div>
-                    <p class="font-medium text-yellow-700">
-                      Perhatikan Kelembaban
-                    </p>
-                    <p class="text-sm text-gray-600">
-                      Kelembaban tanah di area utara menurun 15% dalam 3 hari
-                      terakhir.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded">
-                <div class="flex items-start">
-                  <div
-                    class="w-5 h-5 flex items-center justify-center text-green-500 mt-0.5 mr-2"
-                  >
-                    <i class="ri-information-line"></i>
-                  </div>
-                  <div>
-                    <p class="font-medium text-green-700">
-                      Waktu Optimal Panen
-                    </p>
-                    <p class="text-sm text-gray-600">
-                      Berdasarkan analisis, minggu kedua Juni adalah waktu
-                      optimal untuk panen padi di lahan Anda.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Recommendations -->
-          <div class="bg-white rounded shadow p-5">
-            <h2 class="text-lg font-semibold mb-4">Rekomendasi Tindakan</h2>
-            <div class="space-y-3">
-              <div
-                class="border border-gray-200 rounded p-3 hover:bg-gray-50 cursor-pointer"
-              >
-                <div class="flex justify-between items-center mb-1">
-                  <p class="font-medium">Aplikasi Pupuk NPK</p>
-                  <span
-                    class="text-xs bg-primary text-white px-2 py-0.5 rounded-full"
-                    >Prioritas Tinggi</span
-                  >
-                </div>
-                <p class="text-sm text-gray-600">
-                  Lakukan pemupukan NPK dengan dosis 250kg/ha dalam 3 hari ke
-                  depan untuk mengoptimalkan pertumbuhan.
-                </p>
-              </div>
-              <div
-                class="border border-gray-200 rounded p-3 hover:bg-gray-50 cursor-pointer"
-              >
-                <div class="flex justify-between items-center mb-1">
-                  <p class="font-medium">Persiapan Irigasi</p>
-                  <span
-                    class="text-xs bg-yellow-500 text-white px-2 py-0.5 rounded-full"
-                    >Prioritas Sedang</span
-                  >
-                </div>
-                <p class="text-sm text-gray-600">
-                  Siapkan sistem irigasi tambahan untuk mengantisipasi periode
-                  kering yang diprediksi akan terjadi.
-                </p>
-              </div>
-              <div
-                class="border border-gray-200 rounded p-3 hover:bg-gray-50 cursor-pointer"
-              >
-                <div class="flex justify-between items-center mb-1">
-                  <p class="font-medium">Pantau Hama Wereng</p>
-                  <span
-                    class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full"
-                    >Informasi</span
-                  >
-                </div>
-                <p class="text-sm text-gray-600">
-                  Terdapat laporan peningkatan populasi wereng di area sekitar.
-                  Lakukan pemantauan rutin.
-                </p>
-              </div>
-            </div>
-            <button
-              class="mt-4 w-full py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 !rounded-button whitespace-nowrap"
-            >
-              Lihat Semua Rekomendasi
-            </button>
-          </div>
-        </div>
-      </div>
-      <!-- Data Upload Section -->
-      <div class="mt-8 bg-white rounded shadow p-5">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-semibold">Upload Data</h2>
-          <div class="flex items-center space-x-3">
-            <button
-              class="px-4 py-2 bg-primary text-white !rounded-button whitespace-nowrap flex items-center"
-            >
-              <i class="ri-upload-cloud-line mr-2"></i>
-              Upload Data Baru
-            </button>
-            <button
-              class="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 !rounded-button whitespace-nowrap flex items-center"
-            >
-              <i class="ri-download-line mr-2"></i>
-              Download Template
-            </button>
-          </div>
-        </div>
+    <div class="min-h-screen flex flex-col">
+      <!-- Header -->
+      <header class="bg-white shadow-sm">
         <div
-          class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center"
-          id="dropZone"
+          class="container mx-auto px-4 py-3 flex justify-between items-center"
         >
-          <input
-            type="file"
-            id="fileInput"
-            class="hidden"
-            multiple
-            accept=".csv,.xlsx,.xls"
-          />
-          <div
-            class="w-16 h-16 bg-primary/10 rounded-full mx-auto mb-4 flex items-center justify-center"
-          >
-            <i class="ri-upload-cloud-line text-primary ri-2x"></i>
-          </div>
-          <h3 class="text-lg font-medium mb-2">
-            Drag & drop file atau klik untuk upload
-          </h3>
-          <p class="text-sm text-gray-500 mb-4">
-            Format yang didukung: CSV, Excel (.xlsx, .xls)
-          </p>
-          <button
-            class="px-6 py-2.5 bg-primary text-white !rounded-button whitespace-nowrap inline-flex items-center"
-          >
-            <i class="ri-folder-upload-line mr-2"></i>
-            Pilih File
-          </button>
-        </div>
-        <div class="mt-6">
-          <h3 class="font-medium mb-4">File yang Diupload</h3>
-          <div class="space-y-3" id="fileList">
-            <div
-              class="flex items-center justify-between p-3 bg-gray-50 rounded"
-            >
-              <div class="flex items-center">
-                <div
-                  class="w-10 h-10 bg-blue-100 rounded flex items-center justify-center mr-3"
-                >
-                  <i class="ri-file-excel-line text-blue-600 ri-lg"></i>
-                </div>
-                <div>
-                  <p class="font-medium">Data_Panen_2024.xlsx</p>
-                  <p class="text-sm text-gray-500">
-                    2.3 MB • Diupload 2 menit yang lalu
-                  </p>
-                </div>
-              </div>
-              <div class="flex items-center space-x-2">
-                <button
-                  class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary"
-                >
-                  <i class="ri-eye-line"></i>
-                </button>
-                <button
-                  class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-500"
-                >
-                  <i class="ri-delete-bin-line"></i>
-                </button>
-              </div>
+          <div class="flex items-center">
+            <div class="text-primary font-['Pacifico'] text-2xl mr-6">
+              TaniPintar
             </div>
-            <div
-              class="flex items-center justify-between p-3 bg-gray-50 rounded"
-            >
-              <div class="flex items-center">
-                <div
-                  class="w-10 h-10 bg-green-100 rounded flex items-center justify-center mr-3"
-                >
-                  <i class="ri-file-excel-line text-green-600 ri-lg"></i>
+            <nav class="hidden md:flex space-x-6">
+              <a href="#" class="text-primary font-medium flex items-center">
+                <div class="w-5 h-5 flex items-center justify-center mr-1">
+                  <i class="ri-dashboard-line"></i>
                 </div>
-                <div>
-                  <p class="font-medium">Data_Cuaca_Q1.xlsx</p>
-                  <p class="text-sm text-gray-500">
-                    1.8 MB • Diupload 1 jam yang lalu
-                  </p>
+                Dashboard
+              </a>
+              <a
+                href="#"
+                class="text-gray-600 hover:text-primary flex items-center"
+              >
+                <div class="w-5 h-5 flex items-center justify-center mr-1">
+                  <i class="ri-calendar-line"></i>
                 </div>
-              </div>
-              <div class="flex items-center space-x-2">
-                <button
-                  class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary"
-                >
-                  <i class="ri-eye-line"></i>
-                </button>
-                <button
-                  class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-500"
-                >
-                  <i class="ri-delete-bin-line"></i>
-                </button>
-              </div>
-            </div>
+                Jadwal
+              </a>
+              <a
+                href="#"
+                class="text-gray-600 hover:text-primary flex items-center"
+              >
+                <div class="w-5 h-5 flex items-center justify-center mr-1">
+                  <i class="ri-store-line"></i>
+                </div>
+                Pasar
+              </a>
+              <a
+                href="#"
+                class="text-gray-600 hover:text-primary flex items-center"
+              >
+                <div class="w-5 h-5 flex items-center justify-center mr-1">
+                  <i class="ri-plant-line"></i>
+                </div>
+                Lahan
+              </a>
+            </nav>
           </div>
-        </div>
-      </div>
-      <!-- Prediction Section -->
-      <div class="mt-8 bg-white rounded shadow p-5">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-semibold">Analisis Prediktif Hasil Panen</h2>
           <div class="flex items-center space-x-4">
+            <div class="relative">
+              <button
+                class="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary relative"
+              >
+                <i class="ri-notification-3-line ri-lg"></i>
+                <span class="notification-dot"></span>
+              </button>
+            </div>
             <div class="flex items-center">
-              <label class="custom-switch mr-2">
-                <input type="checkbox" checked id="predictionToggle" />
-                <span class="switch-slider"></span>
-              </label>
-              <span class="text-sm">Tampilkan Prediksi</span>
-            </div>
-            <select
-              class="bg-gray-100 border-none text-gray-700 text-sm rounded pr-8 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              <option>Padi</option>
-              <option>Jagung</option>
-              <option>Kedelai</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2">
-            <div id="harvestPredictionChart" class="w-full h-80"></div>
-          </div>
-          <div class="bg-gray-50 p-4 rounded">
-            <h3 class="font-medium mb-3">Faktor yang Mempengaruhi</h3>
-            <div class="space-y-4">
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-sm text-gray-600">Curah Hujan</span>
-                  <span class="text-sm font-medium">75%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    class="bg-blue-500 h-2 rounded-full"
-                    style="width: 75%"
-                  ></div>
-                </div>
+              <div
+                class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden"
+              >
+                <img
+                  src="https://readdy.ai/api/search-image?query=professional%20headshot%20of%20Indonesian%20farmer%20with%20friendly%20smile%2C%20natural%20lighting%2C%20simple%20background%2C%20high%20quality%20portrait&width=100&height=100&seq=1&orientation=squarish"
+                  alt="Profile"
+                  class="w-full h-full object-cover"
+                />
               </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-sm text-gray-600">Kelembaban Tanah</span>
-                  <span class="text-sm font-medium">68%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    class="bg-green-500 h-2 rounded-full"
-                    style="width: 68%"
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-sm text-gray-600">Nutrisi Tanah</span>
-                  <span class="text-sm font-medium">82%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    class="bg-amber-500 h-2 rounded-full"
-                    style="width: 82%"
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-1">
-                  <span class="text-sm text-gray-600">Pengendalian Hama</span>
-                  <span class="text-sm font-medium">60%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    class="bg-red-500 h-2 rounded-full"
-                    style="width: 60%"
-                  ></div>
-                </div>
-              </div>
-            </div>
-            <div class="mt-6">
-              <h3 class="font-medium mb-2">Akurasi Prediksi</h3>
-              <div class="flex items-center">
-                <div
-                  class="w-16 h-16 rounded-full border-4 border-primary flex items-center justify-center mr-4"
-                >
-                  <span class="text-xl font-bold">87%</span>
-                </div>
-                <p class="text-sm text-gray-600">
-                  Berdasarkan data historis 3 musim tanam terakhir dan kondisi
-                  cuaca saat ini
-                </p>
+              <div class="ml-3 hidden md:block">
+                <p class="text-sm font-medium text-gray-800">Budi Santoso</p>
+                <p class="text-xs text-gray-500">Petani Padi</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </main>
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white mt-10 py-8">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      </header>
+
+      <!-- Main Content -->
+      <main class="flex-grow container mx-auto px-4 py-6">
+        <!-- Welcome & Date Section -->
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6"
+        >
           <div>
-            <h3 class="text-lg font-medium mb-4">AgriSmart</h3>
-            <p class="text-gray-400 text-sm">
-              Platform analisis data pertanian terdepan untuk membantu petani
-              mengambil keputusan berbasis data.
+            <h1 class="text-2xl font-semibold text-gray-800">
+              Selamat Pagi, Budi!
+            </h1>
+            <p class="text-gray-500">
+              Sabtu, 10 Mei 2025 | Kecamatan Sukamaju, Jawa Barat
             </p>
           </div>
-          <div>
-            <h3 class="text-lg font-medium mb-4">Navigasi Cepat</h3>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li><a href="#" class="hover:text-white">Dashboard</a></li>
-              <li><a href="#" class="hover:text-white">Data Analisis</a></li>
-              <li><a href="#" class="hover:text-white">Prediksi</a></li>
-              <li><a href="#" class="hover:text-white">Rekomendasi</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 class="text-lg font-medium mb-4">Bantuan</h3>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li><a href="#" class="hover:text-white">Pusat Bantuan</a></li>
-              <li><a href="#" class="hover:text-white">Tutorial</a></li>
-              <li><a href="#" class="hover:text-white">FAQ</a></li>
-              <li><a href="#" class="hover:text-white">Hubungi Kami</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 class="text-lg font-medium mb-4">Kontak</h3>
-            <ul class="space-y-2 text-sm text-gray-400">
-              <li class="flex items-center">
-                <div class="w-5 h-5 flex items-center justify-center mr-2">
-                  <i class="ri-mail-line"></i>
-                </div>
-                <span>info@AgriSmart.id</span>
-              </li>
-              <li class="flex items-center">
-                <div class="w-5 h-5 flex items-center justify-center mr-2">
-                  <i class="ri-phone-line"></i>
-                </div>
-                <span>+62 812 3456 7890</span>
-              </li>
-              <li class="flex items-center">
-                <div class="w-5 h-5 flex items-center justify-center mr-2">
-                  <i class="ri-map-pin-line"></i>
-                </div>
-                <span>Jl. Sudirman No. 123, Jakarta</span>
-              </li>
-            </ul>
+          <div class="mt-4 md:mt-0 flex items-center">
+            <button
+              class="bg-primary text-white px-4 py-2 !rounded-button flex items-center whitespace-nowrap"
+            >
+              <div class="w-5 h-5 flex items-center justify-center mr-2">
+                <i class="ri-add-line"></i>
+              </div>
+              Tambah Data Baru
+            </button>
           </div>
         </div>
-        <div
-          class="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center"
-        >
-          <p class="text-sm text-gray-400">
-            © 2025 AgriSmart. Hak Cipta Dilindungi.
-          </p>
-          <div class="flex space-x-4 mt-4 md:mt-0">
-            <a
-              href="#"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600"
-            >
-              <i class="ri-facebook-fill text-white"></i>
-            </a>
-            <a
-              href="#"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600"
-            >
-              <i class="ri-twitter-x-fill text-white"></i>
-            </a>
-            <a
-              href="#"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600"
-            >
-              <i class="ri-instagram-fill text-white"></i>
-            </a>
-            <a
-              href="#"
-              class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600"
-            >
-              <i class="ri-youtube-fill text-white"></i>
-            </a>
+        <!-- Top Cards Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <!-- Weather Card -->
+          <div class="weather-card rounded shadow-sm p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-white/80 text-sm">Cuaca Hari Ini</p>
+                <div class="flex items-end mt-1">
+                  <span class="text-3xl font-semibold">29°C</span>
+                  <span class="ml-1 text-white/80 text-sm">Cerah Berawan</span>
+                </div>
+                <div class="mt-3 flex items-center">
+                  <div class="w-5 h-5 flex items-center justify-center mr-1">
+                    <i class="ri-drop-line"></i>
+                  </div>
+                  <span class="text-sm">Kelembapan: 75%</span>
+                </div>
+                <div class="mt-1 flex items-center">
+                  <div class="w-5 h-5 flex items-center justify-center mr-1">
+                    <i class="ri-windy-line"></i>
+                  </div>
+                  <span class="text-sm">Angin: 10 km/jam</span>
+                </div>
+              </div>
+              <div class="w-16 h-16 flex items-center justify-center">
+                <i class="ri-sun-cloudy-line ri-3x"></i>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-white/20">
+              <p class="text-xs text-white/80 mb-2">Prakiraan 24 Jam Kedepan</p>
+              <div class="flex justify-between">
+                <div class="text-center">
+                  <p class="text-xs">09:00</p>
+                  <div
+                    class="w-6 h-6 mx-auto my-1 flex items-center justify-center"
+                  >
+                    <i class="ri-sun-line"></i>
+                  </div>
+                  <p class="text-xs font-medium">30°</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs">12:00</p>
+                  <div
+                    class="w-6 h-6 mx-auto my-1 flex items-center justify-center"
+                  >
+                    <i class="ri-sun-line"></i>
+                  </div>
+                  <p class="text-xs font-medium">32°</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs">15:00</p>
+                  <div
+                    class="w-6 h-6 mx-auto my-1 flex items-center justify-center"
+                  >
+                    <i class="ri-sun-cloudy-line"></i>
+                  </div>
+                  <p class="text-xs font-medium">31°</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs">18:00</p>
+                  <div
+                    class="w-6 h-6 mx-auto my-1 flex items-center justify-center"
+                  >
+                    <i class="ri-cloudy-line"></i>
+                  </div>
+                  <p class="text-xs font-medium">28°</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-xs">21:00</p>
+                  <div
+                    class="w-6 h-6 mx-auto my-1 flex items-center justify-center"
+                  >
+                    <i class="ri-moon-clear-line"></i>
+                  </div>
+                  <p class="text-xs font-medium">26°</p>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- Soil Moisture Card -->
+          <div class="bg-white rounded shadow-sm p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-gray-500 text-sm">Kelembapan Tanah</p>
+                <div class="flex items-end mt-1">
+                  <span class="text-3xl font-semibold text-gray-800">68%</span>
+                  <span class="ml-2 text-primary text-sm">Optimal</span>
+                </div>
+              </div>
+              <div
+                class="w-10 h-10 flex items-center justify-center text-primary"
+              >
+                <i class="ri-water-percent-line ri-2x"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  class="bg-primary h-2.5 rounded-full"
+                  style="width: 68%"
+                ></div>
+              </div>
+              <div class="flex justify-between mt-1 text-xs text-gray-500">
+                <span>Kering (30%)</span>
+                <span>Optimal (60-75%)</span>
+                <span>Basah (90%)</span>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-100">
+              <p class="text-xs text-gray-500 mb-2">Trend 7 Hari Terakhir</p>
+              <div id="soilMoistureChart" class="h-16 w-full"></div>
+            </div>
+          </div>
+          <!-- Harvest Prediction Card -->
+          <div class="bg-white rounded shadow-sm p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-gray-500 text-sm">Prediksi Panen</p>
+                <div class="flex items-end mt-1">
+                  <span class="text-3xl font-semibold text-gray-800">24</span>
+                  <span class="ml-2 text-gray-500 text-sm">Hari Lagi</span>
+                </div>
+              </div>
+              <div
+                class="w-10 h-10 flex items-center justify-center text-primary"
+              >
+                <i class="ri-calendar-check-line ri-2x"></i>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  class="bg-primary h-2.5 rounded-full"
+                  style="width: 75%"
+                ></div>
+              </div>
+              <div class="flex justify-between mt-1 text-xs text-gray-500">
+                <span>Tanam</span>
+                <span>Saat Ini (75%)</span>
+                <span>Panen</span>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-100">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-xs text-gray-500">Estimasi Hasil</p>
+                  <p class="text-sm font-medium text-gray-800">
+                    6,8 ton/hektar
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Tanggal Panen</p>
+                  <p class="text-sm font-medium text-gray-800">3 Juni 2025</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Market Price Card -->
+          <div class="bg-white rounded shadow-sm p-5">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-gray-500 text-sm">Harga Pasar Padi</p>
+                <div class="flex items-end mt-1">
+                  <span class="text-3xl font-semibold text-gray-800"
+                    >Rp 4,8</span
+                  >
+                  <span class="ml-1 text-gray-500 text-sm">juta/ton</span>
+                </div>
+              </div>
+              <div
+                class="w-10 h-10 flex items-center justify-center text-green-600"
+              >
+                <i class="ri-line-chart-line ri-2x"></i>
+              </div>
+            </div>
+            <div class="mt-2 flex items-center">
+              <div
+                class="w-5 h-5 flex items-center justify-center text-green-600 mr-1"
+              >
+                <i class="ri-arrow-up-line"></i>
+              </div>
+              <span class="text-green-600 text-sm font-medium">+3,2%</span>
+              <span class="ml-1 text-xs text-gray-500">dari minggu lalu</span>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-100">
+              <p class="text-xs text-gray-500 mb-2">Trend Harga 30 Hari</p>
+              <div id="priceChart" class="h-16 w-full"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle Section: Map & Tasks -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Map Section -->
+          <div class="lg:col-span-2 bg-white rounded shadow-sm p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-medium text-gray-800">Peta Lahan</h2>
+              <div class="flex space-x-2">
+                <button class="text-gray-500 hover:text-primary p-1">
+                  <div class="w-6 h-6 flex items-center justify-center">
+                    <i class="ri-refresh-line"></i>
+                  </div>
+                </button>
+                <button class="text-gray-500 hover:text-primary p-1">
+                  <div class="w-6 h-6 flex items-center justify-center">
+                    <i class="ri-more-2-fill"></i>
+                  </div>
+                </button>
+              </div>
+            </div>
+            <div class="h-80 w-full rounded overflow-hidden relative">
+              <img
+                src="https://public.readdy.ai/gen_page/map_placeholder_1280x720.png"
+                alt="Map"
+                class="w-full h-full object-cover object-top"
+              />
+              <div class="absolute inset-0 flex items-center justify-center">
+                <!-- Map Overlay Elements -->
+                <div
+                  class="absolute top-4 right-4 bg-white/90 p-3 rounded shadow-sm text-sm"
+                >
+                  <div class="flex items-center mb-2">
+                    <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span>Optimal (60-75%)</span>
+                  </div>
+                  <div class="flex items-center mb-2">
+                    <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                    <span>Perlu Perhatian</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <span>Kritis</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mt-4">
+              <div class="bg-gray-50 p-3 rounded">
+                <p class="text-xs text-gray-500">Total Lahan</p>
+                <p class="text-lg font-medium text-gray-800">2,5 Hektar</p>
+              </div>
+              <div class="bg-gray-50 p-3 rounded">
+                <p class="text-xs text-gray-500">Area Ditanami</p>
+                <p class="text-lg font-medium text-gray-800">2,2 Hektar</p>
+              </div>
+              <div class="bg-gray-50 p-3 rounded">
+                <p class="text-xs text-gray-500">Titik Pengamatan</p>
+                <p class="text-lg font-medium text-gray-800">8 Titik</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tasks & Schedule Section -->
+          <div class="bg-white rounded shadow-sm p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-medium text-gray-800">Jadwal Kegiatan</h2>
+              <button class="text-primary text-sm font-medium">
+                Lihat Semua
+              </button>
+            </div>
+            <div class="space-y-4">
+              <div class="flex items-start">
+                <div
+                  class="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary mr-3 flex-shrink-0"
+                >
+                  <i class="ri-water-flash-line"></i>
+                </div>
+                <div class="flex-grow">
+                  <div class="flex justify-between items-start">
+                    <h3 class="font-medium text-gray-800">Pengairan Lahan</h3>
+                    <span
+                      class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded"
+                      >Hari Ini</span
+                    >
+                  </div>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Blok A & B, 10:00 - 14:00 WIB
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <div
+                  class="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary mr-3 flex-shrink-0"
+                >
+                  <i class="ri-medicine-bottle-line"></i>
+                </div>
+                <div class="flex-grow">
+                  <div class="flex justify-between items-start">
+                    <h3 class="font-medium text-gray-800">
+                      Pemupukan Lanjutan
+                    </h3>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
+                      >Besok</span
+                    >
+                  </div>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Blok C, 07:00 - 09:00 WIB
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <div
+                  class="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary mr-3 flex-shrink-0"
+                >
+                  <i class="ri-bug-line"></i>
+                </div>
+                <div class="flex-grow">
+                  <div class="flex justify-between items-start">
+                    <h3 class="font-medium text-gray-800">Pengendalian Hama</h3>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
+                      >12 Mei</span
+                    >
+                  </div>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Seluruh Area, 15:00 - 17:00 WIB
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start">
+                <div
+                  class="w-10 h-10 flex items-center justify-center bg-primary/10 rounded-full text-primary mr-3 flex-shrink-0"
+                >
+                  <i class="ri-scissors-cut-line"></i>
+                </div>
+                <div class="flex-grow">
+                  <div class="flex justify-between items-start">
+                    <h3 class="font-medium text-gray-800">Pemotongan Gulma</h3>
+                    <span
+                      class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded"
+                      >15 Mei</span
+                    >
+                  </div>
+                  <p class="text-sm text-gray-500 mt-1">
+                    Blok A, 08:00 - 11:00 WIB
+                  </p>
+                </div>
+              </div>
+            </div>
+            <button
+              class="w-full mt-4 py-2 border border-primary text-primary font-medium !rounded-button hover:bg-primary/5 whitespace-nowrap"
+            >
+              Tambah Jadwal
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Section: Market Prices & Data Input -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Market Prices Section -->
+          <div class="lg:col-span-2 bg-white rounded shadow-sm p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-medium text-gray-800">
+                Harga Komoditas Terkini
+              </h2>
+              <div class="flex items-center">
+                <div class="relative mr-2">
+                  <div
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                  >
+                    <div
+                      class="w-4 h-4 flex items-center justify-center text-gray-400"
+                    >
+                      <i class="ri-search-line"></i>
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full pl-10 p-2.5"
+                    placeholder="Cari komoditas..."
+                  />
+                </div>
+                <select
+                  class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full p-2.5 pr-8 appearance-none"
+                >
+                  <option selected>Semua Pasar</option>
+                  <option>Pasar Induk</option>
+                  <option>Pasar Regional</option>
+                  <option>Pasar Desa</option>
+                </select>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Komoditas
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Harga Terkini
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Perubahan
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Trend
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Pasar
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="w-8 h-8 flex items-center justify-center bg-green-100 rounded-full mr-2"
+                        >
+                          <i class="ri-plant-line text-green-600"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900">
+                            Padi
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            Kualitas Premium
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">Rp 4.800.000/ton</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center text-green-600">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-arrow-up-line"></i>
+                        </div>
+                        <span>3,2%</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="w-20 h-10" id="miniChart1"></div>
+                    </td>
+                    <td
+                      class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"
+                    >
+                      Pasar Induk
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="w-8 h-8 flex items-center justify-center bg-yellow-100 rounded-full mr-2"
+                        >
+                          <i class="ri-seedling-line text-yellow-600"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900">
+                            Jagung
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            Kualitas Standar
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">Rp 3.200.000/ton</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center text-red-600">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-arrow-down-line"></i>
+                        </div>
+                        <span>1,5%</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="w-20 h-10" id="miniChart2"></div>
+                    </td>
+                    <td
+                      class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"
+                    >
+                      Pasar Regional
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="w-8 h-8 flex items-center justify-center bg-blue-100 rounded-full mr-2"
+                        >
+                          <i class="ri-water-flash-line text-blue-600"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900">
+                            Kedelai
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            Kualitas Premium
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">Rp 9.500.000/ton</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center text-green-600">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-arrow-up-line"></i>
+                        </div>
+                        <span>5,8%</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="w-20 h-10" id="miniChart3"></div>
+                    </td>
+                    <td
+                      class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"
+                    >
+                      Pasar Induk
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div
+                          class="w-8 h-8 flex items-center justify-center bg-purple-100 rounded-full mr-2"
+                        >
+                          <i class="ri-plant-line text-purple-600"></i>
+                        </div>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900">
+                            Cabai Merah
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            Kualitas Super
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="text-sm text-gray-900">Rp 35.000/kg</div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="flex items-center text-green-600">
+                        <div
+                          class="w-4 h-4 flex items-center justify-center mr-1"
+                        >
+                          <i class="ri-arrow-up-line"></i>
+                        </div>
+                        <span>12,3%</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <div class="w-20 h-10" id="miniChart4"></div>
+                    </td>
+                    <td
+                      class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"
+                    >
+                      Pasar Desa
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Data Input Section -->
+          <div class="bg-white rounded shadow-sm p-5">
+            <h2 class="text-lg font-medium text-gray-800 mb-4">
+              Input Data Baru
+            </h2>
+            <form>
+              <div class="mb-4">
+                <label
+                  for="field"
+                  class="block mb-2 text-sm font-medium text-gray-700"
+                  >Pilih Lahan</label
+                >
+                <select
+                  id="field"
+                  class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full p-2.5 pr-8 appearance-none"
+                >
+                  <option selected>Blok A - Padi</option>
+                  <option>Blok B - Padi</option>
+                  <option>Blok C - Padi</option>
+                  <option>Blok D - Jagung</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label
+                  for="date"
+                  class="block mb-2 text-sm font-medium text-gray-700"
+                  >Tanggal</label
+                >
+                <input
+                  type="date"
+                  id="date"
+                  class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                  value="2025-05-10"
+                />
+              </div>
+              <div class="mb-4">
+                <label
+                  for="temperature"
+                  class="block mb-2 text-sm font-medium text-gray-700"
+                  >Suhu (°C)</label
+                >
+                <input
+                  type="number"
+                  id="temperature"
+                  class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                  placeholder="Masukkan suhu"
+                  value="29"
+                />
+              </div>
+              <div class="mb-4">
+                <label
+                  for="humidity"
+                  class="block mb-2 text-sm font-medium text-gray-700"
+                  >Kelembapan Tanah (%)</label
+                >
+                <input
+                  type="number"
+                  id="humidity"
+                  class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                  placeholder="Masukkan kelembapan"
+                  value="68"
+                />
+              </div>
+              <div class="mb-4">
+                <label
+                  for="plantHeight"
+                  class="block mb-2 text-sm font-medium text-gray-700"
+                  >Tinggi Tanaman (cm)</label
+                >
+                <input
+                  type="number"
+                  id="plantHeight"
+                  class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                  placeholder="Masukkan tinggi tanaman"
+                  value="85"
+                />
+              </div>
+              <div class="mb-4">
+                <label class="block mb-2 text-sm font-medium text-gray-700"
+                  >Kondisi Tanaman</label
+                >
+                <div class="flex space-x-4">
+                  <div class="flex items-center">
+                    <div
+                      class="custom-checkbox checked"
+                      data-value="baik"
+                    ></div>
+                    <label for="condition-good" class="text-sm text-gray-700"
+                      >Baik</label
+                    >
+                  </div>
+                  <div class="flex items-center">
+                    <div class="custom-checkbox" data-value="sedang"></div>
+                    <label for="condition-medium" class="text-sm text-gray-700"
+                      >Sedang</label
+                    >
+                  </div>
+                  <div class="flex items-center">
+                    <div class="custom-checkbox" data-value="buruk"></div>
+                    <label for="condition-bad" class="text-sm text-gray-700"
+                      >Buruk</label
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="block mb-2 text-sm font-medium text-gray-700"
+                  >Keberadaan Hama</label
+                >
+                <div class="flex items-center">
+                  <label class="custom-switch mr-2">
+                    <input type="checkbox" checked />
+                    <span class="switch-slider"></span>
+                  </label>
+                  <span class="text-sm text-gray-700">Terdeteksi</span>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label
+                  for="notes"
+                  class="block mb-2 text-sm font-medium text-gray-700"
+                  >Catatan</label
+                >
+                <textarea
+                  id="notes"
+                  rows="3"
+                  class="bg-gray-50 border-none text-gray-900 text-sm rounded-lg block w-full p-2.5"
+                  placeholder="Tambahkan catatan..."
+                >
+Daun menguning di beberapa area, perlu pemupukan tambahan.</textarea
+                >
+              </div>
+              <button
+                type="submit"
+                class="w-full bg-primary text-white py-2.5 font-medium !rounded-button whitespace-nowrap"
+              >
+                Simpan Data
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+
+      <!-- Mobile Navigation (visible on small screens) -->
+      <div
+        class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-10"
+      >
+        <div class="flex justify-between">
+          <a href="#" class="flex flex-col items-center text-primary">
+            <div class="w-6 h-6 flex items-center justify-center">
+              <i class="ri-dashboard-line"></i>
+            </div>
+            <span class="text-xs mt-1">Beranda</span>
+          </a>
+          <a href="#" class="flex flex-col items-center text-gray-500">
+            <div class="w-6 h-6 flex items-center justify-center">
+              <i class="ri-calendar-line"></i>
+            </div>
+            <span class="text-xs mt-1">Jadwal</span>
+          </a>
+          <a href="#" class="flex flex-col items-center text-gray-500">
+            <div class="w-6 h-6 flex items-center justify-center">
+              <i class="ri-store-line"></i>
+            </div>
+            <span class="text-xs mt-1">Pasar</span>
+          </a>
+          <a href="#" class="flex flex-col items-center text-gray-500">
+            <div class="w-6 h-6 flex items-center justify-center">
+              <i class="ri-plant-line"></i>
+            </div>
+            <span class="text-xs mt-1">Lahan</span>
+          </a>
+          <a href="#" class="flex flex-col items-center text-gray-500">
+            <div class="w-6 h-6 flex items-center justify-center">
+              <i class="ri-user-line"></i>
+            </div>
+            <span class="text-xs mt-1">Profil</span>
+          </a>
         </div>
       </div>
-    </footer>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Soil Moisture Chart
+        const soilMoistureChart = echarts.init(
+          document.getElementById("soilMoistureChart")
+        );
+        soilMoistureChart.setOption({
+          animation: false,
+          grid: { top: 0, right: 0, bottom: 0, left: 0 },
+          xAxis: {
+            type: "category",
+            data: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
+            show: false,
+          },
+          yAxis: {
+            type: "value",
+            show: false,
+          },
+          series: [
+            {
+              data: [62, 65, 70, 68, 65, 67, 68],
+              type: "line",
+              smooth: true,
+              symbol: "none",
+              lineStyle: {
+                color: "rgba(87, 181, 231, 1)",
+              },
+              areaStyle: {
+                color: {
+                  type: "linear",
+                  x: 0,
+                  y: 0,
+                  x2: 0,
+                  y2: 1,
+                  colorStops: [
+                    {
+                      offset: 0,
+                      color: "rgba(87, 181, 231, 0.2)",
+                    },
+                    {
+                      offset: 1,
+                      color: "rgba(87, 181, 231, 0.05)",
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        });
+
+        // Price Chart
+        const priceChart = echarts.init(document.getElementById("priceChart"));
+        priceChart.setOption({
+          animation: false,
+          grid: { top: 0, right: 0, bottom: 0, left: 0 },
+          xAxis: {
+            type: "category",
+            data: Array.from({ length: 30 }, (_, i) => i + 1),
+            show: false,
+          },
+          yAxis: {
+            type: "value",
+            show: false,
+          },
+          series: [
+            {
+              data: [
+                4.5, 4.4, 4.3, 4.35, 4.4, 4.5, 4.55, 4.5, 4.45, 4.4, 4.3, 4.35,
+                4.4, 4.45, 4.5, 4.55, 4.6, 4.65, 4.7, 4.65, 4.6, 4.55, 4.6,
+                4.65, 4.7, 4.75, 4.7, 4.65, 4.7, 4.8,
+              ],
+              type: "line",
+              smooth: true,
+              symbol: "none",
+              lineStyle: {
+                color: "rgba(87, 181, 231, 1)",
+              },
+              areaStyle: {
+                color: {
+                  type: "linear",
+                  x: 0,
+                  y: 0,
+                  x2: 0,
+                  y2: 1,
+                  colorStops: [
+                    {
+                      offset: 0,
+                      color: "rgba(87, 181, 231, 0.2)",
+                    },
+                    {
+                      offset: 1,
+                      color: "rgba(87, 181, 231, 0.05)",
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        });
+
+        // Mini Charts for Market Prices
+        const createMiniChart = (id, data, color, isUp) => {
+          const chart = echarts.init(document.getElementById(id));
+          chart.setOption({
+            animation: false,
+            grid: { top: 0, right: 0, bottom: 0, left: 0 },
+            xAxis: {
+              type: "category",
+              data: Array.from({ length: data.length }, (_, i) => i + 1),
+              show: false,
+            },
+            yAxis: {
+              type: "value",
+              show: false,
+            },
+            series: [
+              {
+                data: data,
+                type: "line",
+                smooth: true,
+                symbol: "none",
+                lineStyle: {
+                  color: color,
+                },
+                areaStyle: {
+                  color: {
+                    type: "linear",
+                    x: 0,
+                    y: 0,
+                    x2: 0,
+                    y2: 1,
+                    colorStops: [
+                      {
+                        offset: 0,
+                        color: color.replace("1)", "0.2)"),
+                      },
+                      {
+                        offset: 1,
+                        color: color.replace("1)", "0.05)"),
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+          });
+        };
+
+        createMiniChart(
+          "miniChart1",
+          [
+            4.5, 4.4, 4.3, 4.35, 4.4, 4.5, 4.55, 4.5, 4.45, 4.4, 4.3, 4.35, 4.4,
+            4.45, 4.5, 4.55, 4.6, 4.65, 4.7, 4.65, 4.6, 4.55, 4.6, 4.65, 4.7,
+            4.75, 4.7, 4.65, 4.7, 4.8,
+          ],
+          "rgba(87, 181, 231, 1)",
+          true
+        );
+        createMiniChart(
+          "miniChart2",
+          [
+            3.5, 3.55, 3.5, 3.45, 3.4, 3.35, 3.3, 3.25, 3.3, 3.25, 3.2, 3.15,
+            3.2, 3.25, 3.3, 3.25, 3.2, 3.15, 3.2, 3.25, 3.3, 3.25, 3.2, 3.15,
+            3.2, 3.25, 3.3, 3.25, 3.2, 3.15,
+          ],
+          "rgba(252, 141, 98, 1)",
+          false
+        );
+        createMiniChart(
+          "miniChart3",
+          [
+            8.5, 8.6, 8.7, 8.8, 8.9, 9.0, 9.1, 9.0, 8.9, 8.8, 8.9, 9.0, 9.1,
+            9.2, 9.1, 9.0, 9.1, 9.2, 9.3, 9.4, 9.3, 9.2, 9.3, 9.4, 9.5, 9.4,
+            9.3, 9.4, 9.5, 9.5,
+          ],
+          "rgba(87, 181, 231, 1)",
+          true
+        );
+        createMiniChart(
+          "miniChart4",
+          [
+            28, 29, 30, 31, 30, 29, 28, 29, 30, 31, 32, 31, 30, 29, 30, 31, 32,
+            33, 32, 31, 30, 31, 32, 33, 34, 33, 32, 33, 34, 35,
+          ],
+          "rgba(87, 181, 231, 1)",
+          true
+        );
+        // Handle custom checkboxes
+        document.querySelectorAll(".custom-checkbox").forEach((checkbox) => {
+          checkbox.addEventListener("click", function () {
+            // Remove checked class from all checkboxes in the same group
+            const parent = this.parentElement.parentElement;
+            parent.querySelectorAll(".custom-checkbox").forEach((cb) => {
+              cb.classList.remove("checked");
+            });
+            // Add checked class to the clicked checkbox
+            this.classList.add("checked");
+          });
+        });
+
+        // Handle window resize for charts
+        window.addEventListener("resize", function () {
+          soilMoistureChart.resize();
+          priceChart.resize();
+          document.querySelectorAll('[id^="miniChart"]').forEach((el) => {
+            echarts.getInstanceByDom(el)?.resize();
+          });
+        });
+      });
+    </script>
   </body>
 </html>
